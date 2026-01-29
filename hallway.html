@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hallway</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+      background: #111;
+      color: #fff;
+    }
+    .card {
+      width: 100%;
+      max-width: 520px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 16px;
+      padding: 24px;
+    }
+    .top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .rooms {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .room-btn, .logout-btn {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.10);
+      color: #fff;
+      cursor: pointer;
+      font-size: 15px;
+      text-align: left;
+    }
+    .room-btn:hover, .logout-btn:hover {
+      background: rgba(255,255,255,0.16);
+    }
+    .meta { opacity: 0.9; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="top">
+      <div>
+        <h2 style="margin:0;">Hallway</h2>
+        <div class="meta" id="meta"></div>
+      </div>
+      <button class="logout-btn" id="logoutBtn" style="width:auto;">Log out</button>
+    </div>
+
+    <p style="margin: 0 0 10px;">Choose a room:</p>
+    <div class="rooms" id="rooms"></div>
+  </div>
+
+  <script>
+    const username = localStorage.getItem("loggedInUsername");
+    const accountType = localStorage.getItem("accountType");
+    const currentRoom = localStorage.getItem("currentRoom");
+
+    if (!username || !accountType) {
+      window.location.href = "index.html";
+    }
+
+    // If they already entered a room, they can’t return to Hallway
+    if (currentRoom) {
+      window.location.href = `room.html?room=${encodeURIComponent(currentRoom)}`;
+    }
+
+    document.getElementById("meta").textContent = `Welcome ${username} (${accountType})`;
+
+    const roomNames = ["Bar", "Billiard Room", "Kitchen", "Reception", "Library"];
+    const roomsDiv = document.getElementById("rooms");
+
+    roomNames.forEach((r) => {
+      const btn = document.createElement("button");
+      btn.className = "room-btn";
+      btn.textContent = r;
+      btn.onclick = () => {
+        localStorage.setItem("currentRoom", r);
+        window.location.href = `room.html?room=${encodeURIComponent(r)}`;
+      };
+      roomsDiv.appendChild(btn);
+    });
+
+    document.getElementById("logoutBtn").onclick = () => {
+      localStorage.clear();
+      window.location.href = "index.html";
+    };
+  </script>
+</body>
+</html>

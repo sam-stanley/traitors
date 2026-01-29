@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Room</title>
+
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      color: white;
+      display: grid;
+      grid-template-columns: 260px 1fr;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.55)),
+        var(--bg-url);
+      background-size: cover;
+      background-position: center;
+      z-index: -1;
+    }
+
+    .sidebar {
+      background: rgba(0,0,0,0.55);
+      border-right: 1px solid rgba(255,255,255,0.12);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .sidebar h2 { margin: 0; font-size: 20px; }
+    .small { opacity: 0.9; font-size: 13px; }
+
+    .room-list { display: grid; gap: 8px; }
+    .room-btn, .logout-btn {
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(255,255,255,0.08);
+      color: white;
+      cursor: pointer;
+      text-align: left;
+      font-size: 14px;
+    }
+    .room-btn:hover, .logout-btn:hover { background: rgba(255,255,255,0.14); }
+    .room-btn.active { background: rgba(255,255,255,0.20); }
+
+    .players {
+      margin-top: 6px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255,255,255,0.12);
+    }
+    .players ul { margin: 8px 0 0; padding-left: 18px; }
+
+    .main {
+      padding: 16px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 12px;
+      min-height: 100vh;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px;
+      padding: 12px 14px;
+    }
+
+    .chat {
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px;
+      padding: 12px;
+      overflow: auto;
+    }
+
+    .msg {
+      padding: 10px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.06);
+      margin-bottom: 10px;
+    }
+    .meta {
+      font-size: 12px;
+      opacity: 0.9;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .text { font-size: 14px; white-space: pre-wrap; }
+
+    .composer {
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px;
+      padding: 12px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(0,0,0,0.35);
+      color: white;
+      outline: none;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    button.send {
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      background: #4f46e5;
+      color: white;
+    }
+    button.send:hover { background: #4338ca; }
+
+    .notice {
+      margin: 0;
+      font-size: 13px;
+      opacity: 0.95;
+    }
+  </style>
+</head>
+
+<body>
+  <aside class="sidebar">
+    <div>
+      <h2 id="roomTitle">Room</h2>
+      <div class="small" id="userMeta"></div>
+    </div>
+
+    <button class="logout-btn" id="logoutBtn">Log out</button>
+
+    <div>
+      <div class="small" style="margin-bottom:8px;">Move rooms:</div>
+      <div class="room-list" id="roomList"></div>
+    </div>
+
+    <div class="players" id="playersBox" style="display:none;">
+      <div class="small">Players here now:</div>
+      <ul id="playersList"></ul>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="header">
+      <div>
+        <div class="notice" id="ruleLine"></div>
+      </div>
+    </div>
+
+    <div class="chat" id="chat"></div>
+
+    <div class="composer" id="composer" style="display:none;">
+      <input id="msgInput" maxlength="500" placeholder="Type a message..." />
+      <button class="send" id="sendBtn">Send</button>
+    </div>
+
+    <p id="error" class="notice" style="color:#ffb4b4;"></p>
+  </main>
+
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+    // Use your existing project values (copied from your index.html)
+    const SUPABASE_URL = "https://grjrvxafmemeohmvllik.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdyanJ2eGFmbWVtZW9obXZsbGlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2Njc0OTcsImV4cCI6MjA4NTI0MzQ5N30.FlOqi4pTMOoAxMrNiIwF8fq4cQGc6k6886UnIbuVs2Y"; // <-- paste your anon key
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const ROOM_BACKGROUNDS = {
+      "Library": "url('library.jpg')",
+      "Bar": "url('bar.jpg')",
+      "Billiard Room": "url('billiardroom.jpg')",
+      "Kitchen": "url('kitchen.jpg')",
+      "Reception": "url('reception.jpg')",
+    };
+
+    const roomNames = Object.keys(ROOM_BACKGROUNDS);
+
+    const username = localStorage.getItem("loggedInUsername");
+    const accountType = localStorage.getItem("accountType");
+    const currentRoomStored = localStorage.getItem("currentRoom");
+
+    const params = new URLSearchParams(window.location.search);
+    const room = params.get("room");
+
+    const errorEl = document.getElementById("error");
+
+    if (!username || !accountType) {
+      window.location.href = "index.html";
+    }
+
+    // Must have a room, and Hallway can't be re-entered
+    if (!room || !roomNames.includes(room)) {
+      // If they have a stored room, go there; otherwise back to hallway
+      if (currentRoomStored) {
+        window.location.href = `room.html?room=${encodeURIComponent(currentRoomStored)}`;
+      } else {
+        window.location.href = "hallway.html";
+      }
+    }
+
+    // Lock hallway return: once in a room, stay in rooms
+    localStorage.setItem("currentRoom", room);
+
+    // Apply background
+    document.documentElement.style.setProperty("--bg-url", ROOM_BACKGROUNDS[room]);
+
+    // UI header
+    document.getElementById("roomTitle").textContent = room;
+    document.getElementById("userMeta").textContent = `${username} (${accountType})`;
+
+    // Sidebar room list
+    const list = document.getElementById("roomList");
+    roomNames.forEach((r) => {
+      const btn = document.createElement("button");
+      btn.className = "room-btn" + (r === room ? " active" : "");
+      btn.textContent = r;
+      btn.onclick = () => window.location.href = `room.html?room=${encodeURIComponent(r)}`;
+      list.appendChild(btn);
+    });
+
+    // Logout
+    document.getElementById("logoutBtn").onclick = () => {
+      localStorage.clear();
+      window.location.href = "index.html";
+    };
+
+    // Rules line + composer visibility
+    const composer = document.getElementById("composer");
+    const ruleLine = document.getElementById("ruleLine");
+
+    if (accountType === "player") {
+      composer.style.display = "grid";
+      ruleLine.textContent = "Players: messages are visible to players for 3 minutes; guests can see them forever.";
+      document.getElementById("playersBox").style.display = "block";
+    } else {
+      ruleLine.textContent = "Guests: you can view messages, but cannot post.";
+    }
+
+    // Helpers
+    const chatEl = document.getElementById("chat");
+
+    function minutesRemaining(createdAtIso) {
+      const created = new Date(createdAtIso).getTime();
+      const expires = created + 3 * 60 * 1000;
+      const now = Date.now();
+      const msLeft = expires - now;
+      const minLeft = Math.max(0, Math.ceil(msLeft / 60000));
+      return minLeft;
+    }
+
+    function formatTime(createdAtIso) {
+      const d = new Date(createdAtIso);
+      return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    }
+
+    function renderMessages(messages) {
+      chatEl.innerHTML = "";
+      for (const m of messages) {
+        const wrap = document.createElement("div");
+        wrap.className = "msg";
+
+        const meta = document.createElement("div");
+        meta.className = "meta";
+
+        const left = document.createElement("div");
+        left.textContent = `${m.username} • ${formatTime(m.created_at)}`;
+
+        const right = document.createElement("div");
+        // Only players need to see countdown
+        if (accountType === "player") {
+          right.textContent = `disappears in ~${minutesRemaining(m.created_at)} min`;
+        } else {
+          right.textContent = "";
+        }
+
+        meta.appendChild(left);
+        meta.appendChild(right);
+
+        const text = document.createElement("div");
+        text.className = "text";
+        text.textContent = m.message;
+
+        wrap.appendChild(meta);
+        wrap.appendChild(text);
+
+        chatEl.appendChild(wrap);
+      }
+
+      // Keep scrolled to bottom
+      chatEl.scrollTop = chatEl.scrollHeight;
+    }
+
+    async function loadMessages() {
+      errorEl.textContent = "";
+
+      // Visibility rules:
+      // - Guests: see ALL player messages for the room (forever)
+      // - Players: see player messages for the room ONLY from last 3 minutes
+      let query = supabase
+        .from("messages")
+        .select("id, created_at, message, username, room")
+        .eq("room", room)
+        .order("id", { ascending: true });
+
+      if (accountType === "player") {
+        const since = new Date(Date.now() - 3 * 60 * 1000).toISOString();
+        query = query.gte("created_at", since);
+      }
+
+      const { data, error } = await query;
+      if (error) {
+        errorEl.textContent = "Error loading messages: " + error.message;
+        return;
+      }
+      renderMessages(data || []);
+    }
+
+    // Posting (players only)
+    async function sendMessage() {
+      const input = document.getElementById("msgInput");
+      const text = input.value.trim();
+      if (!text) return;
+
+      input.value = "";
+      errorEl.textContent = "";
+
+      const { error } = await supabase.from("messages").insert([{
+        room,
+        message: text,
+        username: username
+      }]);
+
+      if (error) {
+        errorEl.textContent = "Error sending message: " + error.message;
+      } else {
+        await loadMessages();
+      }
+    }
+
+    if (accountType === "player") {
+      document.getElementById("sendBtn").onclick = sendMessage;
+      document.getElementById("msgInput").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") sendMessage();
+      });
+    }
+
+    // Presence (players only): heartbeat + list others in same room
+    async function upsertPresence() {
+      if (accountType !== "player") return;
+
+      await supabase.from("presence").upsert([{
+        username,
+        room,
+        account_type: accountType,
+        last_seen: new Date().toISOString()
+      }], { onConflict: "username" });
+    }
+
+    async function loadPresence() {
+      if (accountType !== "player") return;
+
+      // Consider "present" if seen in last 20 seconds
+      const cutoff = new Date(Date.now() - 20 * 1000).toISOString();
+
+      const { data, error } = await supabase
+        .from("presence")
+        .select("username")
+        .eq("room", room)
+        .eq("account_type", "player")
+        .gte("last_seen", cutoff)
+        .order("username", { ascending: true });
+
+      if (error) return;
+
+      const listEl = document.getElementById("playersList");
+      listEl.innerHTML = "";
+
+      (data || [])
+        .filter(p => p.username !== username)
+        .forEach(p => {
+          const li = document.createElement("li");
+          li.textContent = p.username;
+          listEl.appendChild(li);
+        });
+    }
+
+    // Initial load
+    await loadMessages();
+    await upsertPresence();
+    await loadPresence();
+
+    // Polling loop:
+    // - messages refresh (and auto-expire for players)
+    // - presence refresh
+    setInterval(loadMessages, 5000);
+    setInterval(async () => { await upsertPresence(); await loadPresence(); }, 10000);
+  </script>
+</body>
+</html>
