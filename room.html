@@ -6,14 +6,16 @@
   <title>Room</title>
 
   <style>
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: Arial, sans-serif;
-      color: white;
-      display: grid;
-      grid-template-columns: 260px 1fr;
-    }
+  body {
+  	margin: 0;
+  	min-height: 100vh;
+  	min-height: 100dvh; /* better on mobile */
+  	font-family: Arial, sans-serif;
+  	color: white;
+  	display: grid;
+  	grid-template-columns: 260px 1fr;
+  }
+
 
     body::before {
       content: "";
@@ -61,12 +63,14 @@
     .players ul { margin: 8px 0 0; padding-left: 18px; }
 
     .main {
-      padding: 16px;
-      display: grid;
-      grid-template-rows: auto 1fr auto;
-      gap: 12px;
-      min-height: 100vh;
-    }
+	  padding: 16px;
+	  display: grid;
+	  grid-template-rows: auto 1fr auto;
+	  gap: 12px;
+	  min-height: 100vh;
+	  min-height: 100dvh;
+     }
+
 
     .header {
       display: flex;
@@ -105,16 +109,20 @@
     }
     .text { font-size: 14px; white-space: pre-wrap; }
 
-    .composer {
-      background: rgba(0,0,0,0.35);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 16px;
-      padding: 12px;
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 10px;
-      align-items: center;
-    }
+.composer {
+  position: sticky;
+  bottom: 12px; /* keeps it visible above phone UI */
+  background: rgba(0,0,0,0.55);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 16px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+  backdrop-filter: blur(6px);
+}
+
 
     input {
       width: 100%;
@@ -144,6 +152,63 @@
       font-size: 13px;
       opacity: 0.95;
     }
+
+/* ---------- Mobile / small screens ---------- */
+@media (max-width: 820px) {
+  body {
+    grid-template-columns: 1fr;   /* one column */
+    grid-template-rows: auto 1fr; /* sidebar becomes top bar */
+  }
+
+  .sidebar {
+    border-right: none;
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+    padding: 12px;
+    gap: 10px;
+  }
+
+  /* Put the room buttons into a horizontal scroll row */
+  .room-list {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .room-btn {
+    flex: 0 0 auto; /* keep each button sized naturally */
+    white-space: nowrap;
+  }
+
+  /* Make the main area use the remaining height */
+  .main {
+    min-height: calc(100dvh - 160px); /* rough header height */
+    padding: 12px;
+    gap: 10px;
+  }
+
+  /* Chat fills space and scrolls internally */
+  .chat {
+    max-height: none;
+    overflow: auto;
+  }
+
+  /* Slightly smaller paddings/fonts to fit */
+  input { padding: 11px; }
+  button.send { padding: 11px 12px; }
+
+  /* Hide players list by default on small screens (optional) */
+  #playersBox {
+    display: none !important;
+  }
+}
+
+:root {
+  height: 100%;
+}
+
+
+
   </style>
 </head>
 
@@ -154,7 +219,7 @@
       <div class="small" id="userMeta"></div>
     </div>
 
-    <button class="logout-btn" id="logoutBtn">Log out</button>
+    <button class="logout-btn" id="logoutBtn" style="padding: 8px 10px;">Log out</button>
 
     <div>
       <div class="small" style="margin-bottom:8px;">Move rooms:</div>
