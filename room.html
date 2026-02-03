@@ -188,40 +188,12 @@
   }
 
   .main {
-	grid-template-rows: auto auto auto auto;
-    gap: 10px;
+    min-height: calc(100dvh - 160px);
   }
 
   .chat {
-    height: 45dvh;           /* roughly half screen */
-    overflow-y: auto;
-    overflow-x: hidden;
-  }
-
-  .composer {
-    position: static;
-    bottom: auto;
-  }
-
-  .playersPanel {
-    background: rgba(0,0,0,0.35);
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 16px;
-    padding: 12px;
+    max-height: none;
     overflow: auto;
-    max-height: 22dvh;
-  }
-
-  .playersTitle {
-    font-size: 13px;
-    font-weight: 700;
-    margin-bottom: 8px;
-    opacity: 0.95;
-  }
-
-  .playersPanel ul {
-    margin: 0;
-    padding-left: 18px;
   }
 
   input { padding: 11px; }
@@ -258,7 +230,7 @@
 
     <div class="players" id="playersBox" style="display:none;">
       <div class="small">Players here now:</div>
-      <!-- <ul id="playersList"></ul> -->
+      <ul id="playersList"></ul>
     </div>
   </aside>
 
@@ -275,12 +247,6 @@
       <input id="msgInput" maxlength="500" placeholder="Type a message..." />
       <button class="send" id="sendBtn">Send</button>
     </div>
-
-	<div class="playersPanel" id="playersPanel" style="display:none;">
-		<div class="playersTitle">Players here now</div>
-		<ul id="playersList"></ul>
-	</div>
-
 
     <p id="error" class="notice" style="color:#ffb4b4;"></p>
   </main>
@@ -358,7 +324,7 @@
 
     if (accountType === "player") {
       composer.style.display = "grid";
-      ruleLine.textContent = "Players3: messages are visible to players for 3 minutes; guests can see them forever.";
+      ruleLine.textContent = "Players2: messages are visible to players for 3 minutes; guests can see them forever.";
       document.getElementById("playersBox").style.display = "block";
     } else {
       ruleLine.textContent = "Guests: you can view messages, but cannot post.";
