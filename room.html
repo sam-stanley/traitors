@@ -13,7 +13,7 @@
   	font-family: Arial, sans-serif;
   	color: white;
   	display: grid;
-  	grid-template-columns: 260px 1fr;
+  	grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
   }
 
 
@@ -98,16 +98,23 @@
       background: rgba(255,255,255,0.06);
       margin-bottom: 10px;
     }
-    .meta {
-      font-size: 12px;
-      opacity: 0.9;
-      margin-bottom: 4px;
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .text { font-size: 14px; white-space: pre-wrap; }
+	.meta {
+		font-size: 12px;
+		opacity: 0.9;
+		margin-bottom: 4px;
+		display: flex;
+		justify-content: space-between;
+		gap: 10px;
+		flex-wrap: wrap;
+		overflow-wrap: anywhere;
+		word-break: break-word;
+	}
+    .text {
+		font-size: 14px;
+		white-space: pre-wrap;
+		overflow-wrap: anywhere;
+		word-break: break-word;
+	}
 
 .composer {
   position: sticky;
@@ -123,6 +130,22 @@
   backdrop-filter: blur(6px);
 }
 
+	.chat, .sidebar, .main, .msg {
+	  max-width: 100%;
+	  overflow-x: hidden;
+	}
+
+	html, body {
+		overscroll-behavior-x: none;
+	}
+
+	body {
+		touch-action: pan-y; /* only allow vertical panning */
+		grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+	}
+
+
+
 
     input {
       width: 100%;
@@ -132,7 +155,6 @@
       background: rgba(0,0,0,0.35);
       color: white;
       outline: none;
-      font-size: 14px;
       box-sizing: border-box;
       font-size: 16px; /* prevents iOS zoom */
     }
