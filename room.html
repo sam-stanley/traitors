@@ -50,7 +50,7 @@
       color: white;
       cursor: pointer;
       text-align: left;
-      font-size: 8px;
+      font-size: 15px;
     }
     .room-btn:hover, .logout-btn:hover { background: rgba(255,255,255,0.14); }
     .room-btn.active { background: rgba(255,255,255,0.20); }
@@ -98,22 +98,19 @@
       background: rgba(255,255,255,0.06);
       margin-bottom: 10px;
     }
-	.meta {
-		font-size: 12px;
-		opacity: 0.9;
-		margin-bottom: 4px;
-		display: flex;
-		justify-content: space-between;
-		gap: 10px;
-		flex-wrap: wrap;
-		overflow-wrap: anywhere;
-		word-break: break-word;
-	}
+    .meta {
+      font-size: 12px;
+      opacity: 0.9;
+      margin-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
     .text {
 		font-size: 14px;
 		white-space: pre-wrap;
-		overflow-wrap: anywhere;
-		word-break: break-word;
+
 	}
 
 .composer {
@@ -121,7 +118,7 @@
   bottom: 12px; /* keeps it visible above phone UI */
   background: rgba(0,0,0,0.55);
   border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 12px;
   display: grid;
   grid-template-columns: 1fr auto;
@@ -129,22 +126,6 @@
   align-items: center;
   backdrop-filter: blur(6px);
 }
-
-	.chat, .sidebar, .main, .msg {
-	  max-width: 100%;
-	  overflow-x: hidden;
-	}
-
-	html, body {
-		overscroll-behavior-x: none;
-	}
-
-	body {
-		touch-action: pan-y; /* only allow vertical panning */
-		grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
-	}
-
-
 
 
     input {
