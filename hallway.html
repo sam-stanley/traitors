@@ -5,6 +5,23 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Hallway</title>
   <style>
+	  body::before {
+	  content: "";
+	  position: fixed;
+	  inset: 0;
+
+	  background:
+		linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)),
+		url("castle.jpg");
+
+	  background-size: cover;
+	  background-position: center;
+	  background-repeat: no-repeat;
+
+	  z-index: -1;
+	}
+
+  <!--
     body {
       margin: 0;
       min-height: 100vh;
@@ -15,11 +32,12 @@
       padding: 24px;
       background: #111;
       color: #fff;
-    }
+    } -->
+
     .card {
       width: 100%;
       max-width: 520px;
-      background: rgba(255,255,255,0.08);
+      background: rgba(0,0,0,0.85);
       border: 1px solid rgba(255,255,255,0.15);
       border-radius: 16px;
       padding: 24px;
@@ -46,12 +64,13 @@
       color: #fff;
       cursor: pointer;
       font-size: 15px;
-      text-align: left;
+      text-align: center;
     }
     .room-btn:hover, .logout-btn:hover {
       background: rgba(255,255,255,0.16);
     }
     .meta { opacity: 0.9; font-size: 14px; }
+
   </style>
 </head>
 <body>
