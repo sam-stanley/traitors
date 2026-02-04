@@ -203,14 +203,8 @@
     bottom: auto;
   }
 
-  .playersPanel {
-    background: rgba(0,0,0,0.35);
-    border: 1px solid rgba(255,255,255,0.12);
-    border-radius: 16px;
-    padding: 12px;
-    overflow: auto;
-    max-height: 22dvh;
-  }
+  .players { display: none !important; } /* this is your sidebar players wrapper */
+  .playersPanel { display: block; }
 
   .playersTitle {
     font-size: 13px;
@@ -258,7 +252,7 @@
 
     <div class="players" id="playersBox" style="display:none;">
       <div class="small">Players here now:</div>
-      <ul id="playersList"></ul>
+      <ul id="playersListDesktop"></ul>
     </div>
   </aside>
 
@@ -278,7 +272,7 @@
 
 	<div class="playersPanel" id="playersPanel" style="display:none;">
 		<div class="playersTitle">Players here now</div>
-		<ul id="playersList"></ul>
+		<ul id="playersListMobile"></ul>
 	</div>
 
 
@@ -355,6 +349,15 @@
     // Rules line + composer visibility
     const composer = document.getElementById("composer");
     const ruleLine = document.getElementById("ruleLine");
+
+	const playersPanel = document.getElementById("playersPanel");
+
+	if (accountType === "player") {
+	  if (playersPanel) playersPanel.style.display = "block";
+	} else {
+	  if (playersPanel) playersPanel.style.display = "none";
+	}
+
 
     if (accountType === "player") {
       composer.style.display = "grid";
@@ -500,16 +503,27 @@
 
       if (error) return;
 
-      const listEl = document.getElementById("playersList");
-      listEl.innerHTML = "";
+    const listDesktop = document.getElementById("playersListDesktop");
+	const listMobile = document.getElementById("playersListMobile");
 
-      (data || [])
-        .filter(p => p.username !== username)
-        .forEach(p => {
-          const li = document.createElement("li");
-          li.textContent = p.username;
-          listEl.appendChild(li);
-        });
+	if (listDesktop) listDesktop.innerHTML = "";
+	if (listMobile) listMobile.innerHTML = "";
+
+	(data || [])
+	  .filter(p => p.username !== username)
+	  .forEach(p => {
+		if (listDesktop) {
+		  const li = document.createElement("li");
+		  li.textContent = p.username;
+		  listDesktop.appendChild(li);
+		}
+		if (listMobile) {
+		  const li = document.createElement("li");
+		  li.textContent = p.username;
+		  listMobile.appendChild(li);
+		}
+	  });
+
     }
 
     // Initial load
