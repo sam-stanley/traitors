@@ -131,7 +131,79 @@ body::before {
   </div>
 
 
-  <script type="module">
+ <script type="module">
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+  const SUPABASE_URL = "https://grjrvxafmemeohmvllik.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdyanJ2eGFmbWVtZW9obXZsbGlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk2Njc0OTcsImV4cCI6MjA4NTI0MzQ5N30.FlOqi4pTMOoAxMrNiIwF8fq4cQGc6k6886UnIbuVs2Y";
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  const form = document.getElementById("loginForm");
+  const messageEl = document.getElementById("message"); // make sure you have <p id="message"></p> or similar
+
+  // If already logged in, skip login page
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session) {
+    window.location.href = "hallway.html";
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (messageEl) messageEl.textContent = "";
+
+    const username = document.getElementById("username").value.trim();
+    const password = document.getElementById("password").value;
+
+    if (!username || !password) {
+      if (messageEl) messageEl.textContent = "Please enter a username and password.";
+      return;
+    }
+
+    // Lookup email/account_type/auth_id for username (RPC so we don't expose users table)
+    const { data, error: lookupError } = await supabase.rpc("login_lookup", { uname: username });
+    const userRow = data?.[0];
+
+    if (lookupError || !userRow?.email) {
+      if (messageEl) messageEl.textContent = "Invalid username or password.";
+      return;
+    }
+
+    // Auth sign-in (no self-registration; admin created these users)
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email: userRow.email,
+      password
+    });
+
+    if (authError || !authData?.user) {
+      if (messageEl) messageEl.textContent = "Invalid username or password.";
+      return;
+    }
+
+    // Safety: verify auth user matches your mapping
+    if (userRow.auth_id && authData.user.id !== userRow.auth_id) {
+      await supabase.auth.signOut();
+      if (messageEl) messageEl.textContent = "Account mapping error. Contact admin.";
+      return;
+    }
+
+    // Store for UI convenience (RLS uses the auth session)
+    localStorage.setItem("loggedInUsername", userRow.username);
+    localStorage.setItem("accountType", (userRow.account_type || "").toLowerCase());
+
+    localStorage.removeItem("currentRoom");
+    window.location.href = "hallway.html";
+  });
+
+
+
+
+
+
+
+
+
+  /* Below is the old supabase login process
+
     import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
 
     // 🔁 Replace these with your Supabase project values
@@ -185,6 +257,7 @@ body::before {
 
 
     });
+	*/
   </script>
 </body>
 </html>
